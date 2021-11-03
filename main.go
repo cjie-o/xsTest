@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -21,13 +22,14 @@ func main() {
 	fmt.Println(t)
 	d := getData(t)
 	fmt.Println(string(d))
-	deal(d)
+	d1 := deal(d)
+	save(d1)
 }
 
 func getData(token string) []byte {
 	data, header := make(map[string]int), make(map[string]string)
 
-	data["limit"] = 10
+	data["limit"] = 100
 	data["offset"] = 0
 	data["portal_type"] = 6
 	data["portal_entrance"] = 1
@@ -86,7 +88,7 @@ func getToken() string {
 	return string(res.Cookies()[0].Value)
 }
 
-func deal(data []byte) {
+func deal(data []byte) []map[string]string {
 	a := &responseD{}
 	json.Unmarshal(data, a)
 	saveD := make([]map[string]string, len(a.Data.JobPostList))
@@ -107,5 +109,13 @@ func deal(data []byte) {
 		saveD[k]["code"] = v.Code
 		// saveD[k]["department_id"] = v.DepartmentID.
 	}
-	fmt.Println(saveD)
+	return saveD
+	// fmt.Println(saveD)
+}
+func save(data interface{}) {
+	d, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	ioutil.WriteFile("./data.json", d, 0644)
 }
